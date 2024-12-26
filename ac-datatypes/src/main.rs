@@ -119,4 +119,10 @@ fn main() {
     // empty tuple
     let emp: () = (); // this tuple does not consume any memory
     println!("empty tuple: {:?}", emp);
+
+    type User = (i32, String, bool);
+    let user1: User = (1, String::from("Mohamad"), true);
+    println!("user1: {:?}", user1);
+    let user2: User = (2, String::from("Ali"), true);
+    println!("user2: {:?}", user2);
 }
