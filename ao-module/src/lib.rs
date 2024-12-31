@@ -6,7 +6,7 @@
 //    1: cargo modules structure --lib => for lib crates
 //    1: cargo modules structure --bin => for binary crates
 
-mod product {
+pub mod product {
     // category module is a submodule of product
     // so we can use it with relative path
     use category::Category;
