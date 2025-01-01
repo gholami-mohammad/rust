@@ -1,6 +1,6 @@
-use ar_module_exporting::{Category, Order, Product}; // we can import it because of this line in lib.rs: pub use product::Product
+use module_exporting::{Category, Order, Product}; // we can import it because of this line in lib.rs: pub use product::Product
 
-use ar_module_exporting::customer::Customer; // we can use customer::Customer because it is a public module
+use module_exporting::customer::Customer; // we can use customer::Customer because it is a public module
 fn main() {
     let p1 = Product::new(
         1,
