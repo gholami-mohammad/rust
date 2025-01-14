@@ -34,6 +34,33 @@ fn using_static_lifetime() -> &'static i32 {
     x
 }
 
+// -----------------------
+// Lifetimes Elision
+// -----------------------
+/*
+3 rules of lifetime:
+1- Each parameter that is a reference, gets its own lifetime parameter.
+2- If there is exactly one input lifetime parameter, that lifetime is assigned to all output lifetime parameters.
+3- (only for struct methods) If there are multiple input lifetime parameters, but one of them is &self or &mut self, the lifetime of self  is assigned to all output lifetime parameters.
+*/
+
+// -----------------------
+// Lifetimes in structs
+// -----------------------
+struct ArrayProcessor<'a> {
+    data: &'a [i32],
+}
+
+impl<'a> ArrayProcessor<'a> {
+    // based on lifetime elision rules, the compile will update this function signature to this:
+    // update_data_and_return_old_values(&'b mut self, new_data: &'a [i32]) -> &'b [i32]
+    fn update_data_and_return_old_values(&mut self, new_data: &'a [i32]) -> &[i32] {
+        let old_data = self.data;
+        self.data = new_data;
+        old_data
+    }
+}
+
 fn main() {
     // generic lifetime examples
 
