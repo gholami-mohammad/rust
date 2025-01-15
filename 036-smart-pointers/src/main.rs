@@ -16,7 +16,7 @@ this code will produce this compile error: recursive type `List` has infinite si
 to solve this issue, we can use heap. Using Box, Rc or simple reference &, we  can solve the issue:
 */
 
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 enum List {
@@ -78,7 +78,7 @@ fn box_smart_pointer_examples() {
 //#region RC
 /*
 RC = Reference Counting
-
+* Rc is potential to memory leak so use it with care to avoid memory leak
 consider we have these lists
 a = 1,2,3,NIL
 b = 5, &a
@@ -122,7 +122,55 @@ fn rc_example() {
 // Now, a has 3 owners. a, b, and c.
 //#endregion RC
 
+//#region RefCell
+fn ref_cell_example() {
+    /*
+    * RefCell is potential to memory leak so use it with care to avoid memory leak
+    consider we have a variable 'a'. we need to borrow its value as immutable 2 times and then borrow it as mutable once.
+    we know that it is impossible due to rust due to borrowing rules:
+    let a =  10;
+    let b = &a;
+    let c = &a;
+    let d = &mut a; // this is compile time error
+
+    to be able to have this kind of borrowing, we can use RefCell like this;
+     */
+
+    let a = RefCell::new(10);
+    let b = a.borrow(); // borrow immutable reference to a
+    let c = a.borrow(); // borrow immutable again
+
+    drop(b); // release the borrowing
+    drop(c);
+
+    // borrow mutable reference. we can have this borrowing if only b and c already dropped
+    // otherwise, we will have a runtime error not compile error.
+    let mut d = a.borrow_mut();
+    // we can use RefCell to mutate immutable data. a is immutable as you can see
+    *d = *d + 30;
+    println!("d: {:?}", d);
+    drop(d);
+
+    // now we can access a after dropping all references
+    println!("a: {:?}", a);
+
+    // combination of Rc and RefCell
+    let x = Rc::new(RefCell::new(String::from("Golang")));
+
+    // y and z are Rc pointers to x and containing a RefCell -> so we can mutate value of x using both y and z :)
+    let y = Rc::clone(&x);
+    let z = Rc::clone(&x);
+
+    *y.borrow_mut() = String::from("Rust using Y");
+    println!("x updated using y: {:?}", x);
+
+    *z.borrow_mut() = String::from("Rust using z");
+    println!("x updated using z: {:?}", x);
+}
+//#endregion RefCell
+
 fn main() {
     box_smart_pointer_examples();
     rc_example();
+    ref_cell_example();
 }
