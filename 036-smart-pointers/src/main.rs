@@ -16,6 +16,8 @@ this code will produce this compile error: recursive type `List` has infinite si
 to solve this issue, we can use heap. Using Box, Rc or simple reference &, we  can solve the issue:
 */
 
+use std::rc::Rc;
+
 #[derive(Debug)]
 enum List {
     Cons(i32, Box<List>),
@@ -73,6 +75,54 @@ fn box_smart_pointer_examples() {
 }
 //#endregion box
 
+//#region RC
+/*
+RC = Reference Counting
+
+consider we have these lists
+a = 1,2,3,NIL
+b = 5, &a
+c = 6, &a
+
+a is referenced in both b and c and its data should be valid until one of b or c is valid.
+ */
+
+enum ListWithRC {
+    Cons(i32, Option<Rc<ListWithRC>>),
+}
+fn rc_example() {
+    let a = Rc::new(ListWithRC::Cons(
+        1,
+        Some(Rc::new(ListWithRC::Cons(2, None))),
+    ));
+    println!("Reference count after a: {}", Rc::strong_count(&a));
+
+    let b = ListWithRC::Cons(3, Some(Rc::clone(&a))); // here Rc::clone does not clone all data in new reference. it create new reference to 'a' smart pointer
+    println!("Reference count after b: {}", Rc::strong_count(&a));
+
+    let c = ListWithRC::Cons(4, Some(Rc::clone(&a)));
+    println!("Reference count after c: {}", Rc::strong_count(&a));
+    // references to a will be dropped in LIFO. means, when rc_example finished, first, c will be cleared and the first reference to a will be removed
+    // then b will be dropped and the reference to a will be 1
+    // after all, a  will be dropped and references to a  will be 0
+    // now, compiler knows that it  can delete that data.
+
+    {
+        let d = ListWithRC::Cons(5, Some(Rc::clone(&a)));
+        println!("Reference count after d: {}", Rc::strong_count(&a));
+
+        let e = ListWithRC::Cons(5, Some(Rc::clone(&a)));
+        println!("Reference count after e: {}", Rc::strong_count(&a));
+    }
+    println!(
+        "Reference count after inner scope: {}",
+        Rc::strong_count(&a)
+    );
+}
+// Now, a has 3 owners. a, b, and c.
+//#endregion RC
+
 fn main() {
     box_smart_pointer_examples();
+    rc_example();
 }
